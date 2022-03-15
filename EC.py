@@ -16,13 +16,13 @@ c.create_rectangle (-5,canvas_hight-100, canvas_width+5,canvas_hight+5,fill= 'se
 c.create_oval(-80,-80,120,120, fill='orange')
 c.pack()
 
-color_cycle= cycle([' blue', 'pink', 'yellow','green','red','blue','green','black'])
+color_cycle= cycle(['light blue' , 'light pink' , 'light yellow','light green' , 'red', 'blue' , 'green','black'])
 egg_width = 45
 egg_ghight =55
 egg_score =10
 egg_speed = 500
 egg_interval = 4000
-difficulty_color = 0.95
+difficulty_factor = 0.95
 
 catcher_color = 'blue'
 catcher_width= 100
@@ -44,7 +44,7 @@ eggs =[]
 def create_eggs():
     x= randrange(10,740)
     y=40
-    new_egg=c.create_oval(x,y,x+egg_width,y+egg_ghight,fill=next(color_cycle),width=0)
+    new_egg = c.create_oval(x,y,x+egg_width,y+egg_ghight,fill=next(color_cycle),width=0)
     eggs.append(new_egg)
     win.after(egg_interval,create_eggs)
 
@@ -58,6 +58,7 @@ def move_eggs():
 
 def egg_dropped(egg):
     eggs.remove(egg)
+    c.delete(egg)
     lose_a_life()
     if lives == 0:
         messagebox.showinfo('GAME OVER','Final Score : '+ str(score))
@@ -66,6 +67,40 @@ def lose_a_life():
     global lives
     lives -=1
     c.itemconfig(lives_text,text = 'Lives : '+ str(lives))
+
+def catch_check():
+    (catcher_x,catcher_y,catcher_x2,catcher_y2)= c.coords(catcher)
+    for egg in eggs:
+       (egg_x,egg_y,egg_x2,egg_y2)= c.coords(egg) 
+       if catcher_x <egg_x and egg_x2< catcher_x2 and catcher_y2- egg_y2 <40:
+           eggs.remove(egg)
+           c.delete(egg)
+           increase_score(egg_score)
+    win.after(100,catch_check)
+
+def increase_score(points):
+    global score , egg_speed, egg_interval
+    score +=10
+    egg_speed = int (egg_speed*difficulty_factor)
+    egg_interval = int(egg_interval + difficulty_factor)
+    c.itemconfigure(score_text, text = 'Score : '+ str(score))
+
+def move_left(event):
+    (catcher_x,catcher_y,catcher_x2,catcher_y2)= c.coords(catcher)
+    if catcher_x > 0:
+        c.move(catcher,-20,0)  
+
+def move_right (event):
+    (catcher_x,catcher_y,catcher_x2,catcher_y2)= c.coords(catcher)
+    if catcher_x2 <canvas_width:
+        c.move(catcher,20,0)  
+
+c.bind('<Left>',move_left)
+c.bind('<Right>',move_right)
+c.focus_set()
+win.after(1000,create_eggs)
+win.after(2000,move_eggs)
+win.after(1000,catch_check)
 
 
 win.mainloop()
